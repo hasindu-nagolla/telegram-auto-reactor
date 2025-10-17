@@ -3,32 +3,34 @@ import random
 from dotenv import load_dotenv
 from pyrogram import Client, filters
 
-# Load environment variables from .env
 load_dotenv()
 
-# Bot credentials
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-if not BOT_TOKEN:
-    raise SystemExit("BOT_TOKEN is not set in .env")
+if not all([API_ID, API_HASH, BOT_TOKEN]):
+    raise SystemExit("API_ID, API_HASH, or BOT_TOKEN missing in .env")
 
-# Emojis to react with
-EMOJIS = ["👍", "❤️", "😂", "🔥", "👏", "😮"]
+EMOJIS = ["👍", "❤️", "😂", "🔥", "👏", "😮", "😎"]
 
-# Initialize Pyrogram in Bot mode (no MTProto credentials)
-app = Client("auto_reactor_bot", bot_token=BOT_TOKEN)
-
-# Optional: restrict to a specific chat (uncomment and set CHAT_ID)
-# CHAT_ID = int(os.getenv("CHAT_ID"))
-# @app.on_message(filters.chat(CHAT_ID) & filters.group)
+# Bot mode, but with full API creds
+app = Client(
+    "auto_reactor_bot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
 @app.on_message(filters.group & filters.incoming)
-async def react_to_message(client, message):
+async def react_to_message(_, message):
     try:
+        if message.service:  # skip join/leave notices
+            return
         emoji = random.choice(EMOJIS)
         await message.react(emoji)
-        print(f"Reacted to message {message.message_id} in chat {message.chat.id} with {emoji}")
+        print(f"Reacted to message {message.id} in {message.chat.title} with {emoji}")
     except Exception as e:
-        print(f"Reaction failed for message {getattr(message, 'message_id', 'unknown')}: {e}")
+        print(f"Reaction failed → {e}")
 
-print("Reaction bot running...")
+print("🚀 Auto‑Reaction Bot running …")
 app.run()
