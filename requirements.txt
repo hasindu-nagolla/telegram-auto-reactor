@@ -1,2 +1,3 @@
-pyrogram>=1.4.0
-TgCrypto
+pyrogram
+tgcrypto
+python-dotenv
