@@ -7,7 +7,7 @@ from pyrogram import Client, filters
 load_dotenv()
 
 # Bot credentials
-BOT_TOKEN = 8319297258:AAFhZTujhyPiR4aZJAxC0RPQHbNjskllHdw
+BOT_TOKEN = "8319297258:AAFhZTujhyPiR4aZJAxC0RPQHbNjskllHdw"
 if not BOT_TOKEN:
     raise SystemExit("BOT_TOKEN is not set in .env")
 
