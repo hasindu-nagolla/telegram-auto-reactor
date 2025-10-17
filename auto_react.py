@@ -7,42 +7,30 @@ from pyrogram import Client, filters
 load_dotenv()
 
 # Bot credentials
-BOT_TOKEN = "8319297258:AAFhZTujhyPiR4aZJAxC0RPQHbNjskllHdw"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
     raise SystemExit("BOT_TOKEN is not set in .env")
 
 # Emojis to react with
-EMOJIS = [
-    "👍", "❤️", "😂", "🔥", "😄", "😮", "👏", "😭", "🤔", 
-    "😎", "😁", "🙌", "🤩", "😏", "😜", "😢", "😡", "😱", 
-    "🥰", "🤯", "🤗", "💪", "😴", "😇", "😈", "💀", "👻",
-    "🎉", "✨", "💥", "💫", "🌈", "⚡", "🌟", "🍕", "🍔",
-    "🍟", "🍩", "🍎", "🍌", "☕", "🍺", "🍷", "🎂", "🍫",
-    "🐶", "🐱", "🦊", "🐼", "🐨", "🐵", "🐸", "🐯", "🦁",
-    "🌹", "🌻", "🌼", "🍀", "🌳", "🌲", "🌊", "🏔️", "🏖️",
-    "🚗", "✈️", "🚀", "🏀", "⚽", "🎮", "🎵", "🎸", "🎤",
-    "💌", "📚", "📝", "💎", "📸", "🎁", "🔑", "🔒", "🛒",
-    "🧩", "🪐", "⚓", "⏰", "📅", "📌", "💡", "🧠", "🫀",
-    "🤝", "🙈", "🙉", "🙊", "🫶", "💃", "🕺", "🤷", "🤦"
-]
+EMOJIS = ["👍", "❤️", "😂", "🔥", "👏", "😮"]
 
-
-# Initialise Pyrogram in Bot mode
+# Initialize Pyrogram in Bot mode
 app = Client("reactor_bot", bot_token=BOT_TOKEN)
 
 # Optional: restrict to a specific chat (uncomment and set CHAT_ID)
 # CHAT_ID = int(os.getenv("CHAT_ID"))
 # @app.on_message(filters.chat(CHAT_ID) & filters.group)
 
-@app.on_message(filters.group)
+@app.on_message(filters.group & ~filters.edited)
 async def react_to_message(client, message):
     try:
         emoji = random.choice(EMOJIS)
+        # React to the incoming message
         await message.react(emoji)
         print(f"Reacted to message {message.message_id} in chat {message.chat.id} with {emoji}")
     except Exception as e:
         print(f"Reaction failed for message {getattr(message, 'message_id', 'unknown')}: {e}")
 
-
 print("Reaction bot running...")
 app.run()
+
