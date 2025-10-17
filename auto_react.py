@@ -12,9 +12,21 @@ if not BOT_TOKEN:
     raise SystemExit("❌ BOT_TOKEN missing in .env")
 
 API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/setMessageReaction"
-EMOJIS = ["👍", "❤️", "😂", "🔥", "👏", "😮", "😎"]
+
+EMOJIS = ["👍", "❤️", "😂", "🔥", "😄", "😮", "👏", "😭", "🤔", "😎",
+          "😁", "🙌", "🤩", "😏", "😜", "😢", "😡", "😱", "🥰", "🤯", 
+          "🤗", "💪", "😴", "😇", "😈", "💀", "👻", "🎉", "✨", "💥",
+          "💫", "🌈", "⚡", "🌟", "🍕", "🍔", "🍟", "🍩", "🍎", "🍌",
+          "☕", "🍺", "🍷", "🎂", "🍫", "🐶", "🐱", "🦊", "🐼", "🐨",
+          "🐵", "🐸", "🐯", "🦁", "🌹", "🌻", "🌼", "🍀", "🌳", "🌲",
+          "🌊", "🏔️", "🏖️", "🚗", "✈️", "🚀", "🏀", "⚽", "🎮", "🎵",
+          "🎸", "🎤", "💌", "📚", "📝", "💎", "📸", "🎁", "🔑", "🔒",
+          "🛒", "🧩", "🪐", "⚓", "⏰", "📅", "📌", "💡", "🧠", "🫀",
+          "🤝", "🙈", "🙉", "🙊", "🫶", "💃", "🕺", "🤷", "🤦"]
 
 # ---------- Reaction send helper ----------
+
+
 def send_reaction(chat_id: int, message_id: int, emoji: str):
     data = {
         "chat_id": chat_id,
@@ -29,6 +41,8 @@ def send_reaction(chat_id: int, message_id: int, emoji: str):
         print(f"❌ Reaction failed ({response.status_code}): {response.text}")
 
 # ---------- Handler ----------
+
+
 async def on_message(update, context):
     """Pick a random emoji & send reaction via Bot API."""
     message = update.message
@@ -41,11 +55,14 @@ async def on_message(update, context):
         print("Error reacting:", e)
 
 # ---------- Main ----------
+
+
 def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.add_handler(MessageHandler(filters.ALL, on_message))
     print("🚀 Auto‑Reaction Bot running in Bot API mode …")
     application.run_polling()
+
 
 if __name__ == "__main__":
     main()
