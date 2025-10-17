@@ -1,13 +1,17 @@
+import os
+import random
+from dotenv import load_dotenv
 from pyrogram import Client, filters
-from random import choice
-import asyncio
 
-# Replace with your own credentials
-API_ID = 12345678
-API_HASH = "your_api_hash"
-BOT_TOKEN = "your_bot_token"
+# Load environment variables from .env
+load_dotenv()
 
-# Define a list of emojis to pick from
+# Bot credentials
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise SystemExit("BOT_TOKEN is not set in .env")
+
+# Emojis to react with
 EMOJIS = [
     "👍", "❤️", "😂", "🔥", "😄", "😮", "👏", "😭", "🤔", 
     "😎", "😁", "🙌", "🤩", "😏", "😜", "😢", "😡", "😱", 
@@ -22,17 +26,23 @@ EMOJIS = [
     "🤝", "🙈", "🙉", "🙊", "🫶", "💃", "🕺", "🤷", "🤦"
 ]
 
-app = Client("auto_reactor", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# React to every new message in groups
-@app.on_message(filters.group & ~filters.bot)
-async def add_reaction(_, message):
+# Initialise Pyrogram in Bot mode
+app = Client("reactor_bot", bot_token=BOT_TOKEN)
+
+# Optional: restrict to a specific chat (uncomment and set CHAT_ID)
+# CHAT_ID = int(os.getenv("CHAT_ID"))
+# @app.on_message(filters.chat(CHAT_ID) & filters.group)
+
+@app.on_message(filters.group & ~filters.edited)
+async def react_to_message(client, message):
     try:
-        emoji = choice(EMOJIS)
+        emoji = random.choice(EMOJIS)
+        # React to the incoming message
         await message.react(emoji)
-        print(f"Reacted to message {message.id} with {emoji}")
+        print(f"Reacted to message {message.message_id} in chat {message.chat.id} with {emoji}")
     except Exception as e:
-        print(f"Error reacting to message {message.id}: {e}")
+        print(f"Reaction failed for message {getattr(message, 'message_id', 'unknown')}: {e}")
 
-print("🤖 Auto Reaction Bot is running...")
+print("Reaction bot running...")
 app.run()
