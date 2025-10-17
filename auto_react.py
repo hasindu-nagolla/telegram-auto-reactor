@@ -34,15 +34,15 @@ app = Client("reactor_bot", bot_token=BOT_TOKEN)
 # CHAT_ID = int(os.getenv("CHAT_ID"))
 # @app.on_message(filters.chat(CHAT_ID) & filters.group)
 
-@app.on_message(filters.group & ~filters.edited)
+@app.on_message(filters.group)
 async def react_to_message(client, message):
     try:
         emoji = random.choice(EMOJIS)
-        # React to the incoming message
         await message.react(emoji)
         print(f"Reacted to message {message.message_id} in chat {message.chat.id} with {emoji}")
     except Exception as e:
         print(f"Reaction failed for message {getattr(message, 'message_id', 'unknown')}: {e}")
+
 
 print("Reaction bot running...")
 app.run()
