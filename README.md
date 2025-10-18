@@ -9,29 +9,38 @@ A simple yet fun Telegram bot that automatically reacts to every message in a gr
 - **Easy to Deploy:** Can be run locally or deployed on a Virtual Private Server (VPS).  
 - **Lightweight:** Minimal dependencies and resource usage.  
 
-## Getting Started
+## Deployment on a VPS (Ubuntu)
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+Here’s how to get your bot running 24/7 on a Virtual Private Server.
 
-### Prerequisites
+1. **Connect to Your VPS**
+    ```bash
+    ssh your_username@your_server_ip
+    sudo apt update && sudo apt upgrade -y
+    sudo apt install python3 python3-pip python3-venv -y
+    ```
 
-- Python 3.8 or higher  
-- A Telegram Bot Token. You can get one by talking to the [BotFather](https://t.me/BotFather) on Telegram.  
-
-### Local Installation
-
-1. **Clone the repository:**
+2. **Clone Project:**
    ```bash
    git clone https://github.com/your-username/hasindu-nagolla-telegram-auto-reactor.git
    cd hasindu-nagolla-telegram-auto-reactor
    ```
 
-2. **Create a virtual environment:**
+3. **Set Up the Environment**
    ```bash
    python3 -m venv venv
    source venv/bin/activate
+   pip install -r requirements.txt
+   nano .env   # BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
    ```
-3. **Install the dependencies:**
+4. **Install the dependencies:**
    ```bash
    pip install -r requirements.txt
+   ```
+
+5. **Run the Bot in tmux:**
+   ```bash
+   tmux new -s telegram-bot
+   source venv/bin/activate
+   python auto_react.py
    ```
