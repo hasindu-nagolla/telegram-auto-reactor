@@ -2,12 +2,48 @@
 
 A simple yet fun Telegram bot that automatically reacts to every message in a group or private chat with a random emoji.
 
+## 🌐 Live Website
+
+Visit the website at: [https://hasindu-nagolla.github.io/telegram-auto-reactor/](https://hasindu-nagolla.github.io/telegram-auto-reactor/)
+
+The website is built with React + Tailwind CSS and automatically deployed via GitHub Actions.
+
 ## Features
 
 - **Automatic Reactions:** Reacts to every new message sent in the chat.  
 - **Random Emojis:** Chooses from a wide variety of emojis for diverse reactions.  
 - **Easy to Deploy:** Can be run locally or deployed on a Virtual Private Server (VPS).  
-- **Lightweight:** Minimal dependencies and resource usage.  
+- **Lightweight:** Minimal dependencies and resource usage.
+
+## 🚀 Website Development
+
+The website is built using:
+- **React** - Modern UI library
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Fast build tool
+- **GitHub Actions** - Automated deployment to GitHub Pages
+
+### Local Development
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Run development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+4. **Preview production build:**
+   ```bash
+   npm run preview
+   ```  
 
 ## Deployment on a VPS (Ubuntu)
 
