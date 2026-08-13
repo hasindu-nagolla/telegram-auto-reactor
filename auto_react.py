@@ -1,6 +1,8 @@
 import os
 import random
-import requests
+import asyncio
+import signal
+import aiohttp
 from dotenv import load_dotenv
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -17,38 +19,37 @@ API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/setMessageReaction"
 # Initialize Sentiment Analyzer
 analyzer = SentimentIntensityAnalyzer()
 
-# Emoji Categories (Telegram-compatible reactions only)
+# Emoji Categories — ONLY valid Telegram reaction emojis
+# Reference: https://core.telegram.org/bots/api#reactiontypeemoji
 EMOJI_POSITIVE = ["❤", "🔥", "🎉", "🥰", "😍", "🤩", "👏", "🏆", "💯", "⚡"]
-EMOJI_NEGATIVE = ["😢", "💔", "👎", "😭", "🤮", "🤬", "😱", "🥱"]
-EMOJI_FUNNY = ["😂", "🤣", "🤪", "🤡", "🤭"]
-EMOJI_NEUTRAL = ["🤔", "👀", "🤷", "😐", "🙄"]
-EMOJI_DEFAULT = [
-    "👍", "👌", "🤝", "😎", "🤖", "⭐",
-]
+EMOJI_NEGATIVE = ["😢", "💔", "👎", "😭"]
+EMOJI_FUNNY    = ["😂", "🤣"]
+EMOJI_NEUTRAL  = ["🤔", "👀"]
+EMOJI_DEFAULT  = ["👍", "👌", "🤝", "😎", "⭐"]
 
-# Keyword Triggers (Lowercase keys) - Using Telegram-compatible emojis
+# Keyword Triggers (Lowercase keys) — Using ONLY valid Telegram reaction emojis
 KEYWORD_TRIGGERS = {
-    "coffee": "☕",
-    "good night": "😴",
-    "sleep": "🥱",
-    "hello": "👋",
-    "hi": "👋",
-    "bye": "👋",
-    "good morning": "🌅",
-    "congrats": "🎉",
-    "congratulations": "🎉",
-    "happy birthday": "🎂",
-    "party": "🥳",
-    "love": "❤",
-    "hate": "💔",
-    "lol": "😂",
-    "lmao": "🤣",
-    "rofl": "🤣",
-    "haha": "😂",
-    "thanks": "🙏",
-    "thank you": "🙏",
-    "cool": "😎",
-    "wow": "🤯",
+    "coffee":            "☕",
+    "good night":        "😴",
+    "sleep":             "🥱",
+    "hello":             "👋",
+    "hi":                "👋",
+    "bye":               "👋",
+    "good morning":      "🌞",
+    "congrats":          "🎉",
+    "congratulations":   "🎉",
+    "happy birthday":    "🎂",
+    "party":             "🥳",
+    "love":              "❤",
+    "hate":              "💔",
+    "lol":               "😂",
+    "lmao":              "🤣",
+    "rofl":              "🤣",
+    "haha":              "😂",
+    "thanks":            "🙏",
+    "thank you":         "🙏",
+    "cool":              "😎",
+    "wow":               "🎉",
 }
 
 # ---------- Logic Helper ----------
@@ -58,16 +59,10 @@ def get_reaction_emoji(text: str) -> str:
 
     # 1. Check for Keyword Triggers
     for keyword, emoji in KEYWORD_TRIGGERS.items():
-        # Check if keyword is in the text (simple substring match)
-        # For more strict matching, we could use regex with word boundaries
         if keyword in text_lower:
             return emoji
 
-    # 2. explicit "Funny" markers are handled in keywords (lol, haha),
-    # but let's double check if we want a dedicated logic or just stick to keywords.
-    # The KEYWORD_TRIGGERS already handles "lol", "haha" etc.
-
-    # 3. Analyze Sentiment
+    # 2. Analyze Sentiment
     sentiment = analyzer.polarity_scores(text)
     compound_score = sentiment['compound']
 
@@ -76,25 +71,31 @@ def get_reaction_emoji(text: str) -> str:
     elif compound_score <= -0.05:
         return random.choice(EMOJI_NEGATIVE)
     else:
-        # Neutral sentiment
         return random.choice(EMOJI_NEUTRAL)
 
 
-# ---------- Reaction send helper ----------
-def send_reaction(chat_id: int, message_id: int, emoji: str):
+# ---------- Async Reaction send helper ----------
+async def send_reaction(chat_id: int, message_id: int, emoji: str):
+    """Send a reaction using aiohttp (non-blocking async HTTP)."""
     data = {
         "chat_id": chat_id,
         "message_id": message_id,
         "reaction": [{"type": "emoji", "emoji": emoji}],
         "is_big": False
     }
-    response = requests.post(API_URL, json=data)
-    if response.ok:
-        print(f"✅ Reacted to message {message_id} with {emoji}")
-    else:
-        print(f"❌ Reaction failed ({response.status_code}): {response.text}")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(API_URL, json=data) as response:
+                if response.ok:
+                    print(f"✅ Reacted to message {message_id} with {emoji}")
+                else:
+                    text = await response.text()
+                    print(f"❌ Reaction failed ({response.status}): {text}")
+    except aiohttp.ClientError as e:
+        print(f"❌ Network error sending reaction: {e}")
 
-# ---------- Handlers ---------
+
+# ---------- Handlers ----------
 async def on_start(update, context):
     """Send welcome message when /start is issued."""
     welcome_message = (
@@ -110,24 +111,25 @@ async def on_start(update, context):
 
 
 async def on_message(update, context):
-    """Analyze text & send reaction via Bot API."""
+    """Analyze text & send reaction via Bot API (async, non-blocking)."""
     message = update.message
     if not message or not message.text:  # skip non-text messages
         return
 
     try:
         emoji = get_reaction_emoji(message.text)
-        send_reaction(message.chat_id, message.message_id, emoji)
+        await send_reaction(message.chat_id, message.message_id, emoji)
     except Exception as e:
         print("Error reacting:", e)
+
 
 # ---------- Main ----------
 def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", on_start))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), on_message))
-    print("🚀 Smart Auto‑Reaction Bot running...")
-    application.run_polling()
+    print("🚀 Smart Auto‑Reaction Bot running... (Press Ctrl+C once to stop)")
+    application.run_polling(stop_signals=[signal.SIGINT, signal.SIGTERM])
 
 
 if __name__ == "__main__":
